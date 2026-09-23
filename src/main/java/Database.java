@@ -6,6 +6,7 @@ import java.sql.SQLException;
 import java.sql.Statement;
 import java.time.LocalDate;
 import java.sql.PreparedStatement;
+import java.util.ArrayList;
 
 public class Database {
         private final String url = "jdbc:postgresql://localhost:5432/expense_tracker";
@@ -75,33 +76,60 @@ public class Database {
         }
     }
 
-    public void getExpenses() {
+    public ArrayList<Expense> getExpenses() {
         Connection connection = connect();
+        ArrayList<Expense> expenses = new ArrayList<>();
 
         if (connection == null) {
-            return;
+            return null;
         }
 
-        try (connection; Statement statement = connection.createStatement()){
+        String retrieveAllExpenses = """
+                SELECT * FROM expenses;
+                """;
+        try (connection; Statement statement = connection.createStatement(); ResultSet resultSet = statement.executeQuery(retrieveAllExpenses)){
 
-            String retrieveAllExpenses = """
-                    SELECT * FROM expenses;
-                    """;
-            ResultSet resultSet = statement.executeQuery(retrieveAllExpenses);
-    
                 while (resultSet.next()) {
                     int id = resultSet.getInt("id");
                     String description = resultSet.getString("description");
                     String category = resultSet.getString("category");
                     BigDecimal amount = resultSet.getBigDecimal("amount");
                     LocalDate date = resultSet.getObject("expense_date", LocalDate.class);
+                    
+                    Expense expense = new Expense(id, description, category, amount, date);
+
+                    expenses.add(expense);
                 }
+
+
         } catch (SQLException e) {
             e.printStackTrace();
         }
+
+        return expenses;
     }
 
-    public void updateExpenses() {
+    public void updateExpenses(int id, String description, String category, double amount, LocalDate date) {
+        String updateExpense = """
+                UPDATE expenses
+                SET description = ?,
+                    category = ?,
+                    amount = ?,
+                    expense_date = ?
+                WHERE id = ?;
+                """;
+
+        Connection connection = connect();
+
+        if (connection == null) {
+            return;
+        }
+
+        try (connection; Statement statement = connection.createStatement()) {
+            
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
 
     }
 

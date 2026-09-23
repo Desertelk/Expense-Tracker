@@ -5,6 +5,7 @@ import java.sql.SQLException;
 import java.sql.Statement;
 import java.time.LocalDate;
 import java.sql.PreparedStatement;
+import java.util.ArrayList;
 
 class Main {
     public static void main(String[] args){
@@ -12,8 +13,17 @@ class Main {
         Database database = new Database();
         Connection connection = database.connect();
         database.createTables();
-        database.addExpense("Gasoline", "Need", 12.00, LocalDate.now());
-
+        // database.addExpense("Gasoline", "Need", 12.00, LocalDate.now());
+        ArrayList<Expense> expenses = database.getExpenses();
+        for (Expense expense : expenses){
+            System.out.printf("%d | %s | %s | %.2f | %s%n",
+                expense.getId(),
+                expense.getDescription(),
+                expense.getCategory(),
+                expense.getAmount(),
+                expense.getDate()
+            );
+        }
         
 
             // 
