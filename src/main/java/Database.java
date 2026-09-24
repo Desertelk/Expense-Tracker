@@ -51,7 +51,7 @@ public class Database {
 
     }
 
-    public void addExpense(String description, String category, double amount, LocalDate date) {
+    public void addExpense(String description, String category, BigDecimal amount, LocalDate date) {
         Connection connection = connect();
 
         if (connection == null) {
@@ -66,7 +66,7 @@ public class Database {
         try (connection; PreparedStatement preparedStatement = connection.prepareStatement(insertExpense);){
                 preparedStatement.setString(1, description);
                 preparedStatement.setString(2, category);
-                preparedStatement.setDouble(3, amount);
+                preparedStatement.setBigDecimal(3, amount);
                 preparedStatement.setObject(4, date);
     
                 preparedStatement.executeUpdate();
@@ -85,7 +85,8 @@ public class Database {
         }
 
         String retrieveAllExpenses = """
-                SELECT * FROM expenses;
+                SELECT * FROM expenses
+                ORDER BY id;
                 """;
         try (connection; Statement statement = connection.createStatement(); ResultSet resultSet = statement.executeQuery(retrieveAllExpenses)){
 
@@ -109,7 +110,7 @@ public class Database {
         return expenses;
     }
 
-    public void updateExpenses(int id, String description, String category, double amount, LocalDate date) {
+    public void updateExpense(int id, String description, String category, BigDecimal amount, LocalDate date) {
         String updateExpense = """
                 UPDATE expenses
                 SET description = ?,
@@ -125,15 +126,83 @@ public class Database {
             return;
         }
 
-        try (connection; Statement statement = connection.createStatement()) {
-            
+        try (connection; PreparedStatement preparedStatement = connection.prepareStatement(updateExpense)) {
+            preparedStatement.setString(1, description);
+            preparedStatement.setString(2, category);
+            preparedStatement.setBigDecimal(3, amount);
+            preparedStatement.setObject(4, date);
+            preparedStatement.setInt(5, id);
+
+            int rowsUpdated = preparedStatement.executeUpdate();
+
+            if (rowsUpdated > 0) {
+            System.out.println("Expense updated successfully.");
+            } else {
+                System.out.println("No expense found with ID " + id);
+            }
+
         } catch (SQLException e) {
             e.printStackTrace();
         }
 
     }
 
-    public void deleteExpenses() {
+    public void deleteExpense(int id) {
+        String deleteExpense = """
+                DELETE FROM expenses
+                WHERE id = ?
+                """;
 
+        Connection connection = connect();
+
+        if (connection == null) {
+            return;
+        }
+
+        try (connection; PreparedStatement preparedStatement = connection.prepareStatement(deleteExpense)) {
+            preparedStatement.setInt(1, id);
+
+            int rowsDeleted = preparedStatement.executeUpdate();
+
+            if (rowsDeleted > 0) {
+                System.out.println("Expense deleted successfully.");
+            } else {
+                System.out.println("No expense found with ID " + id);
+    }
+
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+    }
+
+    public ExpenseSummary getExpenseSummary() {
+        Connection connection = connect();
+        String summaryQuery = """
+            SELECT
+                SUM(amount) AS total,
+                AVG(amount) AS average
+            FROM expenses;
+            """;
+
+        if (connection == null) {
+            return new ExpenseSummary(BigDecimal.ZERO, BigDecimal.ZERO);
+        }
+
+        try (connection; Statement statement = connection.createStatement(); ResultSet resultSet = statement.executeQuery(summaryQuery)) {
+            if (resultSet.next()){
+                BigDecimal total = resultSet.getBigDecimal("total");
+                BigDecimal average = resultSet.getBigDecimal("average");
+
+                ExpenseSummary expenseSummary = new ExpenseSummary(total, average);
+
+                if(total != null) {
+                    return expenseSummary;
+                }
+
+            }
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+        return new ExpenseSummary(BigDecimal.ZERO, BigDecimal.ZERO);
     }
 }
