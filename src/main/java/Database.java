@@ -8,11 +8,13 @@ import java.time.LocalDate;
 import java.sql.PreparedStatement;
 import java.util.ArrayList;
 
+// First lines establish the connection to my Postgres database
 public class Database {
         private final String url = "jdbc:postgresql://localhost:5432/expense_tracker";
         private final String username = "postgres";
         private final String password = System.getenv("DB_PASSWORD");
 
+    // Establishes the connection to the database using the information above
     public Connection connect() {
         try {
             Connection connection = DriverManager.getConnection(url, username, password);
@@ -25,6 +27,7 @@ public class Database {
         
     }
 
+    // Creates the expenses table that will be used in the project
     public void createTables() {
         String createExpensesTable = """
                         CREATE TABLE IF NOT EXISTS expenses (
@@ -40,6 +43,7 @@ public class Database {
             return;
         }
         
+        // Confirmation whether the table was created properly or not
         try {
             Statement statement = connection.createStatement();
             statement.executeUpdate(createExpensesTable);
@@ -51,6 +55,7 @@ public class Database {
 
     }
 
+    // Uses a prepared statement to get the information necessary to create the expense object in the database
     public void addExpense(String description, String category, BigDecimal amount, LocalDate date) {
         Connection connection = connect();
 
@@ -76,6 +81,7 @@ public class Database {
         }
     }
 
+    // Uses a ResultSet to query the database for all items in the Database
     public ArrayList<Expense> getExpenses() {
         Connection connection = connect();
         ArrayList<Expense> expenses = new ArrayList<>();
@@ -110,6 +116,7 @@ public class Database {
         return expenses;
     }
 
+    // Uses the UPDATE statement to update the database with the information given
     public void updateExpense(int id, String description, String category, BigDecimal amount, LocalDate date) {
         String updateExpense = """
                 UPDATE expenses
@@ -125,7 +132,8 @@ public class Database {
         if (connection == null) {
             return;
         }
-
+        
+        // Sets the different items of the expense to the prepared statement which allows the database to use the variables
         try (connection; PreparedStatement preparedStatement = connection.prepareStatement(updateExpense)) {
             preparedStatement.setString(1, description);
             preparedStatement.setString(2, category);
@@ -147,6 +155,7 @@ public class Database {
 
     }
 
+    // Uses Prepared statements to send a DELETE statement to the DB
     public void deleteExpense(int id) {
         String deleteExpense = """
                 DELETE FROM expenses
@@ -175,6 +184,7 @@ public class Database {
         }
     }
 
+    // This is to send the resultSet query to receive the Expense Sum and Average of all expenses
     public ExpenseSummary getExpenseSummary() {
         Connection connection = connect();
         String summaryQuery = """

@@ -8,6 +8,7 @@ public class Expense {
     private BigDecimal amount;
     private LocalDate date;
 
+    // Constructor for the expense object
     public Expense(int id, String description, String category, BigDecimal amount, LocalDate date){
         this.id = id;
         this.description = description;
@@ -16,6 +17,7 @@ public class Expense {
         this.date = date;
     }
 
+    // Getters for the different parts of the object
     public int getId(){
         return id;
     }
