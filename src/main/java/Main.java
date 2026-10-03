@@ -1,8 +1,6 @@
 import java.math.BigDecimal;
-import java.sql.Connection;
 import java.time.LocalDate;
 import java.util.ArrayList;
-import java.util.Locale;
 import java.util.Scanner;
 
 class Main {
